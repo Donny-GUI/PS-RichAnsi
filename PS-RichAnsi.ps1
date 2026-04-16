@@ -127,3 +127,76 @@ function ConvertTo-AnsiMarkup {
 
     return $output.ToString()
 }
+
+# OVERIDE CMDLET Write-Host 
+function Write-Host {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0, ValueFromPipeline = $true, ValueFromRemainingArguments = $true)]
+        [AllowNull()]
+        [object[]]$Object,
+
+        [switch]$Rich,
+
+        [switch]$NoNewline,
+
+        [object]$Separator = " ",
+
+        [ConsoleColor]$ForegroundColor,
+
+        [ConsoleColor]$BackgroundColor
+    )
+
+    process {
+        if ($null -eq $Object) {
+            $Object = @("")
+        }
+
+        # Normal Write-Host behavior unless -Rich is explicitly passed.
+        if (-not $Rich) {
+            $params = @{
+                Object    = $Object
+                Separator = $Separator
+            }
+
+            if ($NoNewline) {
+                $params["NoNewline"] = $true
+            }
+
+            if ($PSBoundParameters.ContainsKey("ForegroundColor")) {
+                $params["ForegroundColor"] = $ForegroundColor
+            }
+
+            if ($PSBoundParameters.ContainsKey("BackgroundColor")) {
+                $params["BackgroundColor"] = $BackgroundColor
+            }
+
+            Microsoft.PowerShell.Utility\Write-Host @params
+            return
+        }
+
+        # Rich markup mode.
+        $text = ($Object | ForEach-Object { [string]$_ }) -join [string]$Separator
+        $converted = ConvertTo-AnsiMarkup $text
+
+        $params = @{
+            Object    = $converted
+            Separator = ""
+        }
+
+        if ($NoNewline) {
+            $params["NoNewline"] = $true
+        }
+
+        # Allow native PowerShell colors too, although ANSI markup usually handles this.
+        if ($PSBoundParameters.ContainsKey("ForegroundColor")) {
+            $params["ForegroundColor"] = $ForegroundColor
+        }
+
+        if ($PSBoundParameters.ContainsKey("BackgroundColor")) {
+            $params["BackgroundColor"] = $BackgroundColor
+        }
+
+        Microsoft.PowerShell.Utility\Write-Host @params
+    }
+}
