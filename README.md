@@ -1,33 +1,62 @@
 # 🎨 PowerShell ANSI Color Markup
 
-A lightweight PowerShell ANSI styling helper that lets you write readable terminal color markup instead of raw escape codes.
+A lightweight PowerShell ANSI styling helper for readable terminal output.
 
-Instead of writing this:
+This script lets you write simple rich-text markup inside `Write-Host`, but only when you explicitly opt in with `-Rich`.
+
+Normal `Write-Host` behavior stays untouched unless `-Rich` is passed.
+
+---
+
+## ✨ What It Does
+
+Instead of writing raw ANSI escape codes like this:
 
 ```powershell
-"`e[1;38;2;255;0;0mError:`e[0m Something failed"
+Write-Host "`e[1;38;2;255;0;0mError:`e[0m Something failed"
 ```
 
 You can write this:
 
 ```powershell
-Write-Host "<bold red>Error:</bold> Something failed"
+Write-Host -Rich "<bold red>Error:</bold> Something failed"
 ```
 
-Clean. Readable. Maintainable.
+Cleaner. Safer. Easier to maintain.
 
 ---
 
-## ✨ Features
+## ✅ Why `-Rich`?
 
-- 🎨 Named foreground colors
-- 🧱 Background colors with `bg` prefixes
-- 🌈 Hex RGB colors like `#00ffaa`
-- 🖋️ Font styles like bold, dim, italic, underline, strike, reverse, hidden, and overline
-- 🔁 Safe resets for color, background, font, or all styles
-- 🏷️ Supports both `[tag]` and `<tag>` syntax
-- 🧼 Automatically resets styles after marked-up output
-- 🪟 Works well in Windows Terminal, PowerShell 7+, VS Code terminal, and most ANSI-compatible terminals
+The `-Rich` switch keeps markup parsing explicit.
+
+Without `-Rich`, this prints normally:
+
+```powershell
+Write-Host "<bold red>Error:</bold> Something failed"
+```
+
+Output:
+
+```text
+<bold red>Error:</bold> Something failed
+```
+
+With `-Rich`, markup is parsed:
+
+```powershell
+Write-Host -Rich "<bold red>Error:</bold> Something failed"
+```
+
+Output:
+
+```text
+Error: Something failed
+```
+
+With `Error:` rendered as bold red text.
+
+This prevents accidental parsing in normal scripts, logs, templates, XML snippets, or strings that contain `<tags>`.
 
 ---
 
@@ -39,46 +68,46 @@ Dot-source the script:
 . .\ansi-markup.ps1
 ```
 
-Then use markup directly inside `Write-Host`:
+Use `Write-Host -Rich`:
 
 ```powershell
-Write-Host "<bold red>Error:</bold> File not found"
-Write-Host "<green>Success:</green> Operation completed"
-Write-Host "<yellow bgdarkgray>Warning:</color> Check your config"
+Write-Host -Rich "<bold green>Success:</bold> Operation completed"
+Write-Host -Rich "<bold red>Error:</bold> File not found"
+Write-Host -Rich "<yellow>Warning:</color> Optional config missing"
 ```
 
 ---
 
 ## 🧠 Basic Syntax
 
-You can use XML-style tags:
+The script supports XML-style tags:
 
 ```powershell
-Write-Host "<bold red>Error</bold>"
+Write-Host -Rich "<bold red>Error</bold>"
 ```
 
-Or square-bracket tags:
+And square-bracket tags:
 
 ```powershell
-Write-Host "[bold red]Error[/bold]"
+Write-Host -Rich "[bold red]Error[/bold]"
 ```
 
-Both styles are supported.
+Both work the same way.
 
 ---
 
-## 🎨 Named Colors
+## 🎨 Named Foreground Colors
 
 Use color names directly inside a tag:
 
 ```powershell
-Write-Host "<red>Red text</color>"
-Write-Host "<green>Green text</color>"
-Write-Host "<blue>Blue text</color>"
-Write-Host "<orange>Orange text</color>"
+Write-Host -Rich "<red>Red text</color>"
+Write-Host -Rich "<green>Green text</color>"
+Write-Host -Rich "<blue>Blue text</color>"
+Write-Host -Rich "<orange>Orange text</color>"
 ```
 
-Supported default color names:
+Supported named colors:
 
 ```text
 black
@@ -106,36 +135,36 @@ teal
 
 ## 🧱 Background Colors
 
-Use the `bg` prefix for background colors:
+Use a `bg` prefix for background colors:
 
 ```powershell
-Write-Host "<white bgblue>White text on blue background</color>"
-Write-Host "<black bgorange>Black text on orange background</color>"
-Write-Host "<yellow bgdarkgray>Yellow text on dark gray background</color>"
+Write-Host -Rich "<white bgblue>White text on blue</color>"
+Write-Host -Rich "<black bgorange>Black text on orange</color>"
+Write-Host -Rich "<yellow bgdarkgray>Yellow text on dark gray</color>"
 ```
 
-These forms are supported:
+Supported background forms:
 
 ```powershell
-Write-Host "<bgblue>Background blue</color>"
-Write-Host "<bg:blue>Background blue</color>"
-Write-Host "<bg-blue>Background blue</color>"
-Write-Host "<bg_blue>Background blue</color>"
+Write-Host -Rich "<bgblue>Background blue</color>"
+Write-Host -Rich "<bg:blue>Background blue</color>"
+Write-Host -Rich "<bg-blue>Background blue</color>"
+Write-Host -Rich "<bg_blue>Background blue</color>"
 ```
 
 ---
 
 ## 🌈 Hex RGB Colors
 
-Use full RGB hex colors for precise styling:
+Use 6-digit RGB hex values for custom colors:
 
 ```powershell
-Write-Host "<#00ffaa>Mint green text</color>"
-Write-Host "<bold #ff5555>Error text</bold>"
-Write-Host "<#ffffff bg#202020>White on dark gray</color>"
+Write-Host -Rich "<#00ffaa>Mint green text</color>"
+Write-Host -Rich "<bold #ff5555>Error text</bold>"
+Write-Host -Rich "<#ffffff bg#202020>White on dark gray</color>"
 ```
 
-Hex colors must be 6 digits:
+Hex format:
 
 ```text
 #RRGGBB
@@ -144,10 +173,10 @@ Hex colors must be 6 digits:
 Examples:
 
 ```powershell
-Write-Host "<#ff0000>Red</color>"
-Write-Host "<#00ff00>Green</color>"
-Write-Host "<#0000ff>Blue</color>"
-Write-Host "<#ffaa00>Orange</color>"
+Write-Host -Rich "<#ff0000>Red</color>"
+Write-Host -Rich "<#00ff00>Green</color>"
+Write-Host -Rich "<#0000ff>Blue</color>"
+Write-Host -Rich "<#ffaa00>Orange</color>"
 ```
 
 ---
@@ -157,10 +186,10 @@ Write-Host "<#ffaa00>Orange</color>"
 You can combine colors with font styles:
 
 ```powershell
-Write-Host "<bold red>Bold red</bold>"
-Write-Host "<underline green>Underlined green</underline>"
-Write-Host "<italic cyan>Italic cyan</italic>"
-Write-Host "<strike gray>Strikethrough gray</strike>"
+Write-Host -Rich "<bold red>Bold red</bold>"
+Write-Host -Rich "<underline green>Underlined green</underline>"
+Write-Host -Rich "<italic cyan>Italic cyan</italic>"
+Write-Host -Rich "<strike gray>Strikethrough gray</strike>"
 ```
 
 Supported font styles:
@@ -177,34 +206,28 @@ strike
 overline
 ```
 
-> ⚠️ Some terminals do not support every style. `bold`, `underline`, and colors are widely supported. `italic`, `blink`, and `overline` depend on the terminal.
+Terminal support varies. `bold`, `underline`, and colors are widely supported. `italic`, `blink`, and `overline` depend on the terminal.
 
 ---
 
 ## 🧩 Combining Styles
 
-You can stack multiple styles in one tag:
+Stack multiple styles in one tag:
 
 ```powershell
-Write-Host "<bold underline red>Error:</bold> Invalid input"
+Write-Host -Rich "<bold underline red>Error:</bold> Invalid input"
 ```
 
-You can also mix font styles, foreground colors, and background colors:
+Mix font styles, foreground colors, and background colors:
 
 ```powershell
-Write-Host "<bold underline white bgred>CRITICAL</font>"
+Write-Host -Rich "<bold underline white bgred>CRITICAL</font>"
 ```
 
-For a full reset, use:
+Use a full reset when needed:
 
 ```powershell
-Write-Host "<bold red>Danger!</>"
-```
-
-or:
-
-```powershell
-Write-Host "[bold red]Danger![/]"
+Write-Host -Rich "<bold red bgblack>Danger!</> Normal text"
 ```
 
 ---
@@ -214,37 +237,58 @@ Write-Host "[bold red]Danger![/]"
 Reset only bold:
 
 ```powershell
-Write-Host "<bold red>Bold red</bold> Still red"
+Write-Host -Rich "<bold red>Bold red</bold> Still red"
 ```
 
 Reset all colors:
 
 ```powershell
-Write-Host "<red bgblack>Colored text</color> Normal colors"
+Write-Host -Rich "<red bgblack>Colored text</color> Normal colors"
 ```
 
-Reset all font modifiers:
+Reset foreground only:
 
 ```powershell
-Write-Host "<bold underline green>Styled text</font> Normal font, still green if color remains"
+Write-Host -Rich "<red>Red text</fg> Normal foreground"
+```
+
+Reset background only:
+
+```powershell
+Write-Host -Rich "<white bgblue>Blue background</bg> Normal background"
+```
+
+Reset font modifiers only:
+
+```powershell
+Write-Host -Rich "<bold underline green>Styled text</font> Normal font, still green if color remains"
 ```
 
 Reset everything:
 
 ```powershell
-Write-Host "<bold red bgblack>Styled text</> Normal text"
+Write-Host -Rich "<bold red bgblack>Styled text</> Normal text"
 ```
 
 Available reset tags:
 
 ```text
 </bold>       turns off bold only
-</underline>  turns off underline only
+</dim>        turns off dim only
 </italic>     turns off italic only
+</underline>  turns off underline only
+</blink>      turns off blink only
+</reverse>    turns off reverse video only
+</hidden>     turns off hidden text only
 </strike>     turns off strikethrough only
+</overline>   turns off overline only
+
 </color>      resets foreground and background colors
 </fg>         resets foreground color only
+</foreground> resets foreground color only
 </bg>         resets background color only
+</background> resets background color only
+
 </font>       resets font styles only
 </reset>      resets everything
 </all>        resets everything
@@ -253,75 +297,94 @@ Available reset tags:
 
 ---
 
-## 🏷️ Square Bracket Syntax
+## 🏷️ Square-Bracket Syntax
 
-The script also supports bracket-style tags:
+Square-bracket syntax is also supported:
 
 ```powershell
-Write-Host "[bold red]Error:[/bold] File missing"
-Write-Host "[green]Success[/color]"
-Write-Host "[white bgblue]Info[/color]"
+Write-Host -Rich "[bold red]Error:[/bold] File missing"
+Write-Host -Rich "[green]Success[/color]"
+Write-Host -Rich "[white bgblue] INFO [/color] Server started"
 ```
 
-This is useful when you do not want XML-like tags in your terminal strings.
+This is useful when XML-style tags are awkward in your strings.
 
 ---
 
 ## 🧪 Examples
 
-### Error Message
+### ❌ Error Message
 
 ```powershell
-Write-Host "<bold red>Error:</bold> Unable to connect to database"
+Write-Host -Rich "<bold red>Error:</bold> Unable to connect to database"
 ```
 
-### Success Message
+### ✅ Success Message
 
 ```powershell
-Write-Host "<bold green>Success:</bold> Migration completed"
+Write-Host -Rich "<bold green>Success:</bold> Migration completed"
 ```
 
-### Warning Message
+### ⚠️ Warning Message
 
 ```powershell
-Write-Host "<bold yellow>Warning:</bold> Config file is missing optional settings"
+Write-Host -Rich "<bold yellow>Warning:</bold> Config file is missing optional settings"
 ```
 
-### Info Message
+### ℹ️ Info Message
 
 ```powershell
-Write-Host "<cyan>Info:</color> Server started on port 8080"
+Write-Host -Rich "<cyan>Info:</color> Server started on port 8080"
 ```
 
-### Badge Style
+### 🧱 Badge Style
 
 ```powershell
-Write-Host "<black bgorange> WARNING </color> Disk space is low"
-Write-Host "<black bggreen> OK </color> Health check passed"
-Write-Host "<white bgred> ERROR </color> Build failed"
+Write-Host -Rich "<black bgorange> WARNING </color> Disk space is low"
+Write-Host -Rich "<black bggreen> OK </color> Health check passed"
+Write-Host -Rich "<white bgred> ERROR </color> Build failed"
 ```
 
-### Custom RGB Theme
+### 🌌 Custom RGB Theme
 
 ```powershell
-Write-Host "<bold #00ffaa>Aesir CLI</bold> <#999999>v1.0.0</color>"
-Write-Host "<#ffffff bg#202020> Dark mode output </color>"
+Write-Host -Rich "<bold #00ffaa>Aesir CLI</bold> <#999999>v1.0.0</color>"
+Write-Host -Rich "<#ffffff bg#202020> Dark mode output </color>"
 ```
 
 ---
 
-## 🧱 Intended Use Cases
+## 🧰 Normal `Write-Host` Still Works
 
-This helper is useful for:
+Because rich parsing only happens with `-Rich`, normal `Write-Host` calls are preserved:
 
-- CLI tools
-- Build scripts
-- Deployment logs
-- Status messages
-- Developer tooling
-- Terminal dashboards
-- PowerShell utilities
-- Lightweight terminal UI output
+```powershell
+Write-Host "Plain output"
+Write-Host "This <tag>does not parse</tag>"
+Write-Host -ForegroundColor Red "Native PowerShell color still works"
+```
+
+Use rich mode only when you want markup parsing:
+
+```powershell
+Write-Host -Rich "<bold red>This parses</bold>"
+```
+
+---
+
+## 📌 Recommended Usage
+
+Use `-Rich` for human-facing terminal output:
+
+```powershell
+Write-Host -Rich "<bold cyan>Build Started</bold>"
+Write-Host -Rich "<green>✔ Restore completed</color>"
+Write-Host -Rich "<green>✔ Compile completed</color>"
+Write-Host -Rich "<yellow>⚠ Tests skipped</color>"
+Write-Host -Rich "<black bggreen> DONE </color> Project built successfully"
+```
+
+Avoid `-Rich` for raw data output, logs intended for files, JSON, XML, CSV, or machine-readable output.
 
 ---
 
@@ -329,28 +392,17 @@ This helper is useful for:
 
 This script styles terminal output using ANSI escape sequences.
 
-It works best in modern terminals such as:
+It works best in modern ANSI-compatible terminals:
 
 - Windows Terminal
 - PowerShell 7+
 - VS Code integrated terminal
-- Most Linux/macOS terminals
+- Most Linux terminals
+- Most macOS terminals
 
-Older consoles may not support all ANSI features.
+Older consoles may not support every ANSI feature.
 
-Also, this is intended for terminal display. If output is redirected to a file, the raw ANSI escape codes may be written unless you disable styling.
-
----
-
-## 📌 Example Output Design
-
-```powershell
-Write-Host "<bold cyan>Build Started</bold>"
-Write-Host "<green>✔ Restore completed</color>"
-Write-Host "<green>✔ Compile completed</color>"
-Write-Host "<yellow>⚠ Tests skipped</color>"
-Write-Host "<black bggreen> DONE </color> Project built successfully"
-```
+If output is redirected to a file, ANSI escape codes may be written into that file when `-Rich` is used.
 
 ---
 
@@ -358,12 +410,12 @@ Write-Host "<black bggreen> DONE </color> Project built successfully"
 
 The goal is simple:
 
-> Make PowerShell terminal styling readable, expressive, and easy to maintain.
+> Make PowerShell terminal styling readable, expressive, and safe by requiring explicit rich output mode.
 
-Instead of raw ANSI codes scattered everywhere, your output can use clean markup:
+Instead of spreading raw ANSI codes through your scripts, write clean markup:
 
 ```powershell
-Write-Host "<bold green>Success</bold>"
+Write-Host -Rich "<bold green>Success</bold>"
 ```
 
-That is easier to write, easier to read, and easier to change.
+Readable scripts. Better terminal output. Less ANSI noise.
